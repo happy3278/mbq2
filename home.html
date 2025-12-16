@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        /* 密码输入界面 */
+        #password-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+        
+        #password-input {
+            padding: 12px 20px;
+            font-size: 18px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            width: 300px;
+        }
+        
+        #submit-password {
+            padding: 12px 30px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        #submit-password:hover {
+            background-color: #45a049;
+        }
+        
+        /* 主界面 */
+        #main-container {
+            display: none;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        #current-time {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .buttons-container {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            gap: 20px;
+        }
+        
+        .button {
+            width: 120px;
+            height: 120px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .button.development {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .button.development:hover {
+            transform: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            margin-top: auto;
+        }
+        
+        /* 加载画面 */
+        #loading-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 密码输入界面 -->
+    <div id="password-container">
+        <input type="password" id="password-input" placeholder="请输入密码">
+        <button id="submit-password">登录</button>
+    </div>
+    
+    <!-- 主界面 -->
+    <div id="main-container">
+        <div class="header">
+            <div id="current-time"></div>
+            <h1>主界面</h1>
+        </div>
+        
+        <div class="buttons-container">
+            <button class="button" onclick="openPage('students.html')">2506班学生名</button>
+            <button class="button" onclick="openPage('index1.html')">夸克文件</button>
+            <button class="button development">正在开发</button>
+            <button class="button development">正在开发</button>
+            <button class="button development">正在开发</button>
+            <button class="button development">正在开发</button>
+            <button class="button development">正在开发</button>
+            <button class="button development">正在开发</button>
+            <button class="button development">正在开发</button>
+            <button class="button development">正在开发</button>
+        </div>
+        
+        <div class="footer">
+            版权归Miao Boqi所有
+        </div>
+    </div>
+    
+    <!-- 加载画面 -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <div>加载中...</div>
+    </div>
+    
+    <script>
+        // 音频反馈
+        const clickSound = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==');
+        
+        // 密码验证
+        document.getElementById('submit-password').addEventListener('click', function() {
+            const password = document.getElementById('password-input').value;
+            if (password === '997899') {
+                document.getElementById('password-container').style.display = 'none';
+                document.getElementById('main-container').style.display = 'flex';
+                startClock();
+            } else {
+                alert('密码错误');
+            }
+        });
+        
+        // 回车键提交密码
+        document.getElementById('password-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('submit-password').click();
+            }
+        });
+        
+        // 实时时间
+        function startClock() {
+            function updateTime() {
+                const now = new Date();
+                const timeString = now.toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                document.getElementById('current-time').textContent = timeString;
+            }
+            updateTime();
+            setInterval(updateTime, 1000);
+        }
+        
+        // 按钮点击事件
+        function openPage(page) {
+            // 播放音效
+            clickSound.play();
+            
+            // 显示加载画面
+            document.getElementById('loading-screen').style.display = 'flex';
+            
+            // 模拟加载延迟
+            setTimeout(function() {
+                window.open(page, '_self');
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
