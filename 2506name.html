@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2506班学生姓名</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            position: relative;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .back-button {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .back-button:hover {
+            background-color: #45a049;
+        }
+        .name-list {
+            font-size: 18px;
+            text-align: center;
+        }
+        .name-item {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">2506班学生姓名</div>
+        <button class="back-button" onclick="window.location.href='index.html'">返回首页</button>
+    </div>
+    <div class="name-list">
+        <div class="name-item">牛浩帆</div>
+        <div class="name-item">谢梓梵</div>
+        <div class="name-item">安云</div>
+        <div class="name-item">赵宸辰</div>
+        <div class="name-item">阮蒙福</div>
+        <div class="name-item">陈祖贤</div>
+        <div class="name-item">院子祥</div>
+        <div class="name-item">张雨彤</div>
+        <div class="name-item">曹一萱</div>
+        <div class="name-item">邱鑫成</div>
+        <div class="name-item">王云麒</div>
+        <div class="name-item">高梦轩</div>
+        <div class="name-item">邢孜远</div>
+        <div class="name-item">张佳媛</div>
+        <div class="name-item">李梓嘉</div>
+        <div class="name-item">刁彦歆</div>
+        <div class="name-item">房晓硕</div>
+        <div class="name-item">苗博琪</div>
+        <div class="name-item">薛家恒</div>
+        <div class="name-item">魏莹怡</div>
+        <div class="name-item">石子涵</div>
+        <div class="name-item">王妙恩</div>
+        <div class="name-item">晋涵哲</div>
+        <div class="name-item">张馨予</div>
+        <div class="name-item">谢子隐</div>
+        <div class="name-item">庞雅晨</div>
+        <div class="name-item">郭佳卉</div>
+        <div class="name-item">赵一森</div>
+        <div class="name-item">杜沅宸</div>
+        <div class="name-item">王燚桦</div>
+        <div class="name-item">李雨珂</div>
+        <div class="name-item">阮曙语</div>
+        <div class="name-item">院宇菲</div>
+        <div class="name-item">李语晨</div>
+        <div class="name-item">崔博杰</div>
+        <div class="name-item">申俊泽</div>
+        <div class="name-item">阮蒙召</div>
+        <div class="name-item">杨紫晴</div>
+        <div class="name-item">笛雨彤</div>
+        <div class="name-item">宋怡豪</div>
+        <div class="name-item">邢跃凯</div>
+        <div class="name-item">石焕楷</div>
+        <div class="name-item">靖雅淇</div>
+    </div>
+    <!-- 加载画面 -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <div>加载中...</div>
+    </div>
+    
+    <script>
+        // 监听页面加载事件（包括从其他页面返回时）
+        window.addEventListener('pageshow', function(event) {
+            // 显示加载画面
+            const loadingScreen = document.getElementById('loading-screen');
+            loadingScreen.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.7);
+                color: white;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            `;
+            
+            // 创建旋转动画
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                
+                .spinner {
+                    border: 4px solid rgba(255, 255, 255, 0.3);
+                    border-top: 4px solid white;
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    animation: spin 1s linear infinite;
+                    margin-bottom: 20px;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // 模拟加载延迟
+            setTimeout(function() {
+                // 隐藏加载画面
+                loadingScreen.style.display = 'none';
+                document.head.removeChild(style);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
