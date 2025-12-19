@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线电视观看</title>
+    <link href="https://vjs.zencdn.net/7.15.4/video-js.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 300px;
+            background-color: #2c3e50;
+            color: white;
+            overflow-y: auto;
+        }
+        .sidebar-header {
+            padding: 20px;
+            background-color: #34495e;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .category-list {
+            list-style: none;
+        }
+        .category-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid #34495e;
+            transition: background-color 0.3s;
+        }
+        .category-item:hover {
+            background-color: #34495e;
+        }
+        .category-item.active {
+            background-color: #3498db;
+        }
+        .channel-list {
+            list-style: none;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .channel-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .channel-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .channel-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .channel-item:hover {
+            background-color: #34495e;
+        }
+        .channel-item.active {
+            background-color: #2980b9;
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: relative;
+        }
+        .back-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 100;
+            transition: background-color 0.3s;
+        }
+        .back-button:hover {
+            background-color: #2980b9;
+        }
+        .player-container {
+            flex: 1;
+            margin-bottom: 20px;
+        }
+        #video-player {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .channel-info {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .channel-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+        .search-box {
+            padding: 15px;
+            background-color: #34495e;
+        }
+        #search-input {
+            width: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .source-input-section {
+            padding: 15px;
+            border-bottom: 1px solid #34495e;
+        }
+        .section-title {
+            font-size: 16px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #ddd;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+        .load-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        /* 解析方式选择样式 */
+        .decoding-section {
+            padding: 15px;
+            border-bottom: 1px solid #34495e;
+        }
+        
+        .decoding-options {
+            display: flex;
+            gap: 15px;
+            font-size: 14px;
+        }
+        
+        .decoding-options label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        /* 日志功能样式 */
+        .logs-section {
+            padding: 15px;
+            border-bottom: 1px solid #34495e;
+            font-size: 12px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .log-count {
+            background-color: #3498db;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+        }
+        
+        .clear-logs-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-size: 10px;
+            cursor: pointer;
+        }
+        
+        .clear-logs-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        .logs-container {
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: #34495e;
+            border-radius: 3px;
+            padding: 10px;
+        }
+        
+        .log-item {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-radius: 2px;
+        }
+        
+        .log-item.debug {
+            background-color: #34495e;
+            color: #bdc3c7;
+        }
+        
+        .log-item.info {
+            background-color: #2980b9;
+            color: white;
+        }
+        
+        .log-item.warn {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .log-item.error {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .log-item.success {
+            background-color: #27ae60;
+            color: white;
+        }
+        
+        .log-time {
+            color: #95a5a6;
+            margin-right: 5px;
+            font-size: 10px;
+        }
+        
+        .log-content {
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-header">在线电视</div>
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="搜索频道...">
+            </div>
+            
+            <!-- 手动输入电视源部分 -->
+            <div class="source-input-section">
+                <div class="section-title">自定义电视源</div>
+                <div style="margin-bottom: 10px; font-size: 12px; color: #999;">如果默认源无法访问，可尝试以下公共备用源或手动输入</div>
+                <div style="margin-bottom: 10px;">
+                    <button onclick="document.getElementById('custom-m3u-source').value='https://iptv-org.github.io/iptv/index.m3u'; loadAllSources({m3u: 'https://iptv-org.github.io/iptv/index.m3u', txt: ''})" style="margin-right: 5px; padding: 5px; font-size: 12px;">国外频道</button>
+                    <button onclick="document.getElementById('custom-m3u-source').value='https://gh-proxy.com/raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u'; loadAllSources({m3u: 'https://gh-proxy.com/raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u', txt: ''})" style="margin-right: 5px; padding: 5px; font-size: 12px;">国内IPV4</button>
+                    <button onclick="document.getElementById('custom-txt-source').value='https://gh-proxy.com/raw.githubusercontent.com/suxuang/myIPTV/main/移动专享.txt'; loadAllSources({m3u: '', txt: 'https://gh-proxy.com/raw.githubusercontent.com/suxuang/myIPTV/main/移动专享.txt'})" style="margin-right: 5px; padding: 5px; font-size: 12px;">移动专享</button>
+                    <button onclick="document.getElementById('custom-m3u-source').value='https://m3u.ibert.me/fmml_ipv6.m3u'; loadAllSources({m3u: 'https://m3u.ibert.me/fmml_ipv6.m3u', txt: ''})" style="margin-right: 5px; padding: 5px; font-size: 12px;">国外IPV6</button>
+                    <button onclick="document.getElementById('custom-txt-source').value='http://tttttt.tttttttttt.top/jk.txt'; loadAllSources({m3u: '', txt: 'http://tttttt.tttttttttt.top/jk.txt'})" style="margin-right: 5px; padding: 5px; font-size: 12px;">精选频道</button>
+                    <button onclick="document.getElementById('custom-m3u-source').value='https://raw.githubusercontent.com/suxuang/myIPTV/refs/heads/main/ipv6.m3u'; loadAllSources({m3u: 'https://raw.githubusercontent.com/suxuang/myIPTV/refs/heads/main/ipv6.m3u', txt: ''})" style="margin-right: 5px; padding: 5px; font-size: 12px;">国内IPV6</button>
+                    <button onclick="document.getElementById('custom-m3u-source').value='https://raw.githubusercontent.com/suxuang/myIPTV/refs/heads/main/ipv4.m3u'; loadAllSources({m3u: 'https://raw.githubusercontent.com/suxuang/myIPTV/refs/heads/main/ipv4.m3u', txt: ''})" style="margin-right: 5px; padding: 5px; font-size: 12px;">国内IPV4(备用)</button>
+                    <button onclick="document.getElementById('custom-m3u-source').value='https://raw.githubusercontent.com/hujingguang/ChinaIPTV/main/cnTV_AutoUpdate.m3u8'; loadAllSources({m3u: 'https://raw.githubusercontent.com/hujingguang/ChinaIPTV/main/cnTV_AutoUpdate.m3u8', txt: ''})" style="margin-right: 5px; padding: 5px; font-size: 12px;">央视自动更新</button>
+                    <button onclick="document.getElementById('custom-m3u-source').value='https://raw.githubusercontent.com/zwc456baby/iptv_alive/refs/heads/master/live.m3u'; loadAllSources({m3u: 'https://raw.githubusercontent.com/zwc456baby/iptv_alive/refs/heads/master/live.m3u', txt: ''})" style="margin-right: 5px; padding: 5px; font-size: 12px;">直播源</button>
+                    <button onclick="document.getElementById('custom-m3u-source').value='https://raw.githubusercontent.com/BurningC4/Chinese-IPTV/master/TV-IPV4.m3u'; loadAllSources({m3u: 'https://raw.githubusercontent.com/BurningC4/Chinese-IPTV/master/TV-IPV4.m3u', txt: ''})" style="margin-right: 5px; padding: 5px; font-size: 12px;">国内IPV4(备份)</button>
+                    <button onclick="document.getElementById('custom-m3u-source').value='https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u'; loadAllSources({m3u: 'https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u', txt: ''})" style="margin-right: 5px; padding: 5px; font-size: 12px;">APTV源</button>
+                    <button onclick="document.getElementById('custom-m3u-source').value='https://raw.githubusercontent.com/YueChan/Live/refs/heads/main/IPTV.m3u'; loadAllSources({m3u: 'https://raw.githubusercontent.com/YueChan/Live/refs/heads/main/IPTV.m3u', txt: ''})" style="margin-right: 5px; padding: 5px; font-size: 12px;">YueChan直播源</button>
+                    <button onclick="document.getElementById('custom-m3u-source').value='https://live.fanmingming.cn/tv/m3u/ipv6.m3u'; loadAllSources({m3u: 'https://live.fanmingming.cn/tv/m3u/ipv6.m3u', txt: ''})" style="margin-right: 5px; padding: 5px; font-size: 12px;">Fan直播源IPV6</button>
+                    <button onclick="document.getElementById('custom-m3u-source').value='https://raw.githubusercontent.com/Guovin/iptv-api/gd/output/ipv4/result.m3u'; loadAllSources({m3u: 'https://raw.githubusercontent.com/Guovin/iptv-api/gd/output/ipv4/result.m3u', txt: ''})" style="margin-right: 5px; padding: 5px; font-size: 12px;">Guovin源IPV4</button>
+                    <button onclick="document.getElementById('custom-m3u-source').value='https://raw.githubusercontent.com/Guovin/iptv-api/gd/output/ipv6/result.m3u'; loadAllSources({m3u: 'https://raw.githubusercontent.com/Guovin/iptv-api/gd/output/ipv6/result.m3u', txt: ''})" style="margin-right: 5px; padding: 5px; font-size: 12px;">Guovin源IPV6</button>
+                    <button onclick="document.getElementById('custom-m3u-source').value='https://tv.iill.top/m3u/Gather'; loadAllSources({m3u: 'https://tv.iill.top/m3u/Gather', txt: ''})" style="margin-right: 5px; padding: 5px; font-size: 12px;">iill直播源</button>
+                    <button onclick="document.getElementById('custom-m3u-source').value='https://live.zbds.org/tv/iptv6.m3u'; loadAllSources({m3u: 'https://live.zbds.org/tv/iptv6.m3u', txt: ''})" style="margin-right: 5px; padding: 5px; font-size: 12px;">ZBDS源IPV6</button>
+                </div>
+                <div class="input-group">
+                    <label for="custom-m3u-source">M3U源地址：</label>
+                    <input type="text" id="custom-m3u-source" placeholder="输入M3U源地址" size="30">
+                </div>
+                <div class="input-group">
+                    <label for="custom-txt-source">TXT源地址：</label>
+                    <input type="text" id="custom-txt-source" placeholder="输入TXT源地址" size="30">
+                </div>
+                <button id="load-custom-source" class="load-btn">加载自定义源</button>
+                <button id="check-all-channels" class="load-btn" style="margin-top: 10px; background-color: #27ae60;">检查所有频道可用性</button>
+            </div>
+            
+            <!-- 解析方式选择部分 -->
+            <div class="decoding-section">
+                <div class="section-title">解析方式</div>
+                <div class="decoding-options">
+                    <label><input type="radio" name="decoding-mode" value="software" checked> 软解</label>
+                    <label><input type="radio" name="decoding-mode" value="hardware"> 硬解</label>
+                </div>
+            </div>
+            
+            <!-- 日志功能部分 -->
+            <div class="logs-section">
+                <div class="section-title">
+                    系统日志
+                    <span class="log-count" id="log-count">0</span>
+                    <button class="clear-logs-btn" onclick="clearLogs()">清空</button>
+                </div>
+                <div class="logs-container" id="logs-container">
+                    <!-- 日志内容将在这里动态添加 -->
+                </div>
+            </div>
+            
+            <div class="loading" id="category-loading">请选择下方的电视源加载频道</div>
+            <ul class="category-list" id="category-list" style="display: none;"></ul>
+        </div>
+        <div class="main-content">
+            <button class="back-button" onclick="window.location.href='index.html'">返回首页</button>
+            <div class="player-container">
+                <video id="video-player" class="video-js vjs-big-play-centered" controls autoplay></video>
+            </div>
+            <div class="channel-info">
+                <div class="channel-name" id="current-channel">请选择一个频道</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://vjs.zencdn.net/7.15.4/video.js"></script>
+    <script>
+        // 默认电视源地址
+        const DEFAULT_SOURCES = {
+            m3u: 'https://raw.githubusercontent.com/Guovin/iptv-api/gd/output/ipv4/result.m3u',
+            txt: 'https://raw.githubusercontent.com/BurningC4/Chinese-IPTV/master/TV-IPV4.m3u'
+        };
+        
+        // 当前使用的电视源
+        let currentSources = { ...DEFAULT_SOURCES };
+
+        // 全局变量
+        let channels = [];
+        let categories = {};
+        let currentChannel = null;
+        let player = null;
+        let channelId = 1;
+        let logs = [];
+        const MAX_LOGS = 100; // 最多显示100条日志
+        
+        // 频道可用性相关常量
+        const CHANNEL_STATUS = {
+            UNCHECKED: 'unchecked', // 未检查
+            AVAILABLE: 'available', // 可用
+            UNAVAILABLE: 'unavailable', // 不可用
+            CHECKING: 'checking' // 检查中
+        };
+        
+        // 批量检测时的并发控制
+        const MAX_CONCURRENT_CHECKS = 5; // 最大并发检查数
+        let activeChecks = 0; // 当前活跃的检查数
+        let pendingChecks = []; // 等待检查的队列
+        
+        // 错误自动分析器
+        const errorAnalyzer = {
+            // 错误分析规则
+            rules: {
+                // 网络相关错误
+                network: {
+                    patterns: [
+                        /网络连接已断开/, /ERR_EMPTY_RESPONSE/, /ERR_FAILED/, /ERR_CONNECTION_REFUSED/, 
+                        /Failed to fetch/, /网络错误/, /请求超时/, /AbortError/, /HTTP错误/, 
+                        /网络请求失败/, /服务器无响应/, /服务器拒绝连接/
+                    ],
+                    analysis: '网络连接问题导致的错误，可能是您的网络环境不稳定或服务器不可达',
+                    solutions: [
+                        '检查网络连接是否正常',
+                        '尝试切换到其他网络环境',
+                        '确认电视源地址是否有效',
+                        '稍后重试，可能是服务器临时故障',
+                        '尝试使用其他备用电视源'
+                    ]
+                },
+                // 媒体播放相关错误
+                media: {
+                    patterns: [
+                        /播放失败/, /MEDIA_ERR/, /媒体解码失败/, /媒体源不被支持/, /格式可能不被支持/, 
+                        /视频损坏/, /格式问题/, /跨域访问/, /自动播放失败/, /媒体类型: unknown/,
+                        /播放请求被中断/,
+                        /播放已被用户中止/
+                    ],
+                    analysis: '媒体播放相关错误，可能是媒体格式不被支持、视频损坏或浏览器限制',
+                    solutions: [
+                        '尝试切换解码方式（软解/硬解）',
+                        '确认当前浏览器是否支持该媒体格式',
+                        '尝试使用其他浏览器访问',
+                        '检查视频URL是否正确',
+                        '尝试使用其他频道'
+                    ]
+                },
+                // 电视源相关错误
+                source: {
+                    patterns: [
+                        /电视源加载失败/, /M3U源加载失败/, /TXT源也加载失败/, /未找到可用频道/,
+                        /源没有频道/, /电视源已加载，但未找到可用频道/
+                    ],
+                    analysis: '电视源相关错误，可能是源地址无效、源格式错误或源中没有可用频道',
+                    solutions: [
+                        '检查电视源地址是否正确',
+                        '尝试使用其他备用电视源',
+                        '确认源地址是否可以正常访问',
+                        '检查源格式是否符合M3U或TXT格式要求'
+                    ]
+                },
+                // 其他错误
+                other: {
+                    patterns: [/.*/],
+                    analysis: '未知类型的错误',
+                    solutions: [
+                        '刷新页面重试',
+                        '尝试使用其他浏览器',
+                        '清除浏览器缓存后重试',
+                        '检查浏览器控制台获取详细错误信息'
+                    ]
+                }
+            },
+            
+            // 分析错误信息
+            analyze(errorMessage) {
+                for (const [type, rule] of Object.entries(this.rules)) {
+                    for (const pattern of rule.patterns) {
+                        if (pattern.test(errorMessage)) {
+                            return {
+                                type,
+                                analysis: rule.analysis,
+                                solutions: rule.solutions
+                            };
+                        }
+                    }
+                }
+                // 默认返回其他类型错误
+                return this.rules.other;
+            },
+            
+            // 格式化分析结果
+            formatAnalysis(analysisResult) {
+                let result = `\n【错误分析】：${analysisResult.analysis}`;
+                result += '\n【建议解决方案】：';
+                result += analysisResult.solutions.map((sol, index) => `${index + 1}. ${sol}`).join('\n');
+                return result;
+            }
+        };
+        
+        // 日志记录函数
+        function addLog(message, level = 'info') {
+            // 确保日志数量不超过限制
+            if (logs.length >= MAX_LOGS) {
+                logs.shift(); // 移除最旧的日志
+            }
+            
+            // 错误日志自动分析
+            let logMessage = message;
+            if (level === 'error') {
+                const analysisResult = errorAnalyzer.analyze(message);
+                const formattedAnalysis = errorAnalyzer.formatAnalysis(analysisResult);
+                logMessage = `${message}${formattedAnalysis}`;
+            }
+            
+            // 创建日志对象
+            const log = {
+                id: Date.now(),
+                message: logMessage,
+                level,
+                timestamp: new Date()
+            };
+            
+            // 添加到日志数组
+            logs.push(log);
+            
+            // 显示日志
+            displayLog(log);
+            
+            // 更新日志计数
+            updateLogCount();
+        }
+        
+        // 显示单条日志
+        function displayLog(log) {
+            const logsContainer = document.getElementById('logs-container');
+            const logItem = document.createElement('div');
+            logItem.className = `log-item ${log.level}`;
+            
+            const timeString = log.timestamp.toLocaleTimeString();
+            logItem.innerHTML = `
+                <span class="log-time">${timeString}</span>
+                <span class="log-content">${log.message}</span>
+            `;
+            
+            logsContainer.appendChild(logItem);
+            
+            // 自动滚动到底部
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+        }
+        
+        // 更新日志计数
+        function updateLogCount() {
+            const logCountElement = document.getElementById('log-count');
+            logCountElement.textContent = logs.length;
+        }
+        
+        // 清空日志
+        function clearLogs() {
+            logs = [];
+            const logsContainer = document.getElementById('logs-container');
+            logsContainer.innerHTML = '';
+            updateLogCount();
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            addLog('页面初始化完成', 'info');
+            
+            // 初始化播放器
+            player = videojs('video-player', {
+                controls: true,
+                autoplay: false,
+                preload: 'auto',
+                responsive: true,
+                fluid: true,
+                errorDisplay: true
+            });
+            
+            // 添加解析方式切换事件监听器
+            document.querySelectorAll('input[name="decoding-mode"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    changeDecodingMode(this.value);
+                });
+            });
+            
+            // 初始化时应用默认解码方式
+            changeDecodingMode('software');
+            addLog('视频播放器初始化完成', 'info');
+
+            // 添加网络错误检测
+            window.addEventListener('online', function() {
+                addLog('网络已恢复', 'success');
+                document.getElementById('category-loading').textContent = '网络已恢复，正在重新加载电视源...';
+                loadAllSources();
+            });
+            
+            window.addEventListener('offline', function() {
+                addLog('网络连接已断开', 'error');
+            });
+
+            // 电视源将由用户手动选择加载
+
+            // 搜索功能
+            document.getElementById('search-input').addEventListener('input', function(e) {
+                const keyword = e.target.value;
+                if (keyword.trim()) {
+                    addLog(`搜索频道: ${keyword}`, 'debug');
+                }
+                searchChannels(keyword);
+            });
+            
+            // 加载自定义源
+            const loadCustomBtn = document.getElementById('load-custom-source');
+            loadCustomBtn.addEventListener('click', function() {
+                const customM3U = document.getElementById('custom-m3u-source').value.trim();
+                const customTXT = document.getElementById('custom-txt-source').value.trim();
+                
+                addLog(`用户加载自定义源: M3U=${customM3U || '未提供'}, TXT=${customTXT || '未提供'}`, 'info');
+                
+                const newSources = { ...DEFAULT_SOURCES };
+                if (customM3U) newSources.m3u = customM3U;
+                if (customTXT) newSources.txt = customTXT;
+                
+                document.getElementById('category-loading').textContent = '正在加载自定义电视源...';
+                loadAllSources(newSources);
+            });
+            
+            // 检查所有频道可用性
+            const checkAllChannelsBtn = document.getElementById('check-all-channels');
+            checkAllChannelsBtn.addEventListener('click', function() {
+                if (channels.length === 0) {
+                    addLog('没有可检查的频道，请先加载电视源', 'warn');
+                    return;
+                }
+                checkAllChannelsAvailability();
+            });
+            
+            // 添加播放器错误处理
+            player.on('error', function(event) {
+                console.error('播放器错误:', event.target.error);
+                let errorMsg = '媒体播放失败';
+                
+                try {
+                    if (event.target.error && event.target.error.code !== undefined) {
+                        switch(event.target.error.code) {
+                            case 1: // MEDIA_ERR_ABORTED
+                                errorMsg = '播放已被用户中止';
+                                break;
+                            case 2: // MEDIA_ERR_NETWORK
+                                errorMsg = '网络错误导致播放失败，请检查网络连接或尝试其他频道';
+                                break;
+                            case 3: // MEDIA_ERR_DECODE
+                                errorMsg = '媒体解码失败，格式可能不被支持或视频损坏';
+                                break;
+                            case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
+                                errorMsg = '媒体源不被支持，可能是格式问题或服务器不允许跨域访问';
+                                break;
+                            default:
+                                errorMsg = '未知错误导致播放失败';
+                        }
+                    } else if (event.target.error && event.target.error.message) {
+                        errorMsg = event.target.error.message;
+                        // 处理常见的错误消息
+                        if (errorMsg.includes('ERR_EMPTY_RESPONSE')) {
+                            errorMsg = '服务器无响应，请尝试其他频道';
+                        } else if (errorMsg.includes('ERR_FAILED')) {
+                            errorMsg = '网络请求失败，请检查网络连接';
+                        } else if (errorMsg.includes('ERR_CONNECTION_REFUSED')) {
+                            errorMsg = '服务器拒绝连接，请尝试其他频道';
+                        } else if (errorMsg.includes('AbortError')) {
+                            errorMsg = '播放请求被中断，请重试';
+                        } else if (errorMsg.includes('NotSupportedError')) {
+                            errorMsg = '浏览器不支持该媒体格式';
+                        }
+                    }
+                } catch (e) {
+                    console.error('处理播放器错误时出错:', e);
+                }
+                
+                addLog(`播放错误: ${errorMsg}`, 'error');
+                
+                try {
+                    if (player.errorDisplay && player.errorDisplay.contentEl) {
+                        player.errorDisplay.contentEl().textContent = errorMsg;
+                    }
+                } catch (e) {
+                    console.error('更新播放器错误信息时出错:', e);
+                }
+            });
+            
+            // 加载开始事件
+            player.on('loadstart', function() {
+                addLog('开始加载媒体', 'debug');
+            });
+            
+            // 可以播放事件
+            player.on('canplay', function() {
+                addLog('媒体可以开始播放', 'success');
+            });
+        });
+        
+        // 网络状态检测
+        if (!navigator.onLine) {
+            document.getElementById('category-loading').textContent = '当前处于离线状态，请检查网络连接';
+        }
+
+        // 加载电视源
+        async function loadAllSources(sources = null) {
+            const targetSources = sources || currentSources;
+            if (sources) currentSources = sources;
+            
+            addLog('开始加载电视源', 'info');
+            
+            // 更新加载状态
+            document.getElementById('category-loading').textContent = '正在加载电视源...';
+            document.getElementById('category-list').style.display = 'none';
+            
+            try {
+                // 尝试加载M3U源（如果URL非空）
+                if (targetSources.m3u.trim()) {
+                    addLog(`尝试加载M3U源: ${targetSources.m3u}`, 'debug');
+                    channels = await loadM3USource(targetSources.m3u);
+                    addLog(`M3U源加载成功，频道数量: ${channels.length}`, 'success');
+                } else {
+                    channels = [];
+                }
+                
+                // 如果M3U源没有频道且TXT源URL非空，尝试加载TXT源
+                if (channels.length === 0 && targetSources.txt.trim()) {
+                    addLog(`M3U源没有频道或未指定，尝试加载TXT源: ${targetSources.txt}`, 'debug');
+                    channels = await loadTXTSource(targetSources.txt);
+                    addLog(`TXT源加载成功，频道数量: ${channels.length}`, 'success');
+                }
+            } catch (error) {
+                addLog(`M3U源加载失败: ${error.message}`, 'error');
+                // M3U源加载失败且TXT源URL非空，尝试加载TXT源
+                if (targetSources.txt.trim()) {
+                    try {
+                        addLog(`尝试加载TXT源: ${targetSources.txt}`, 'debug');
+                        channels = await loadTXTSource(targetSources.txt);
+                        addLog(`TXT源加载成功，频道数量: ${channels.length}`, 'success');
+                    } catch (txtError) {
+                        addLog(`TXT源也加载失败: ${txtError.message}`, 'error');
+                        let errorMsg = '所有电视源加载失败';
+                        if (error.message || txtError.message) {
+                            errorMsg += ': ' + (error.message || txtError.message);
+                        } else {
+                            errorMsg += '，请检查网络连接或尝试其他电视源地址';
+                        }
+                        document.getElementById('category-loading').textContent = errorMsg;
+                        return;
+                    }
+                } else {
+                    addLog(`电视源加载失败: ${error.message}`, 'error');
+                    let errorMsg = '电视源加载失败';
+                    if (error.message) {
+                        errorMsg += ': ' + error.message;
+                    } else {
+                        errorMsg += '，请检查网络连接或尝试其他电视源地址';
+                    }
+                    document.getElementById('category-loading').textContent = errorMsg;
+                    return;
+                }
+            }
+
+            if (channels.length === 0) {
+                document.getElementById('category-loading').textContent = '电视源已加载，但未找到可用频道。请尝试其他电视源地址。';
+                return;
+            }
+
+            // 按分类组织频道
+            organizeChannelsByCategory();
+
+            // 显示分类列表
+            displayCategories();
+        }
+
+        // 带超时和重试的fetch函数
+        async function fetchWithTimeout(url, options = {}, timeout = 15000, retryCount = 1) {
+            for (let i = 0; i <= retryCount; i++) {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), timeout);
+                
+                try {
+                    addLog(`正在请求网络资源: ${url} (尝试 ${i + 1}/${retryCount + 1})`, 'debug');
+                    const response = await fetch(url, { ...options, signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    
+                    if (!response.ok) {
+                        if (i < retryCount && response.status >= 500) {
+                            addLog(`HTTP错误 ${response.status}，正在重试 (${i + 1}/${retryCount})...`, 'warn');
+                            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+                            continue;
+                        }
+                        throw new Error(`HTTP错误: ${response.status} ${response.statusText}`);
+                    }
+                    
+                    addLog(`网络资源请求成功: ${url}`, 'success');
+                    return response;
+                } catch (error) {
+                    clearTimeout(timeoutId);
+                    if (error.name === 'AbortError') {
+                        if (i < retryCount) {
+                            addLog(`请求超时，正在重试 (${i + 1}/${retryCount})...`, 'warn');
+                            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+                            continue;
+                        }
+                        throw new Error(`请求超时（${timeout}ms）: ${url}`);
+                    }
+                    
+                    if (i < retryCount && (error.name === 'TypeError' || error.message.includes('Failed to fetch'))) {
+                        addLog(`网络错误，正在重试 (${i + 1}/${retryCount})...`, 'warn');
+                        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+                        continue;
+                    }
+                    
+                    addLog(`网络资源请求失败: ${url}, 错误: ${error.message}`, 'error');
+                    throw error;
+                }
+            }
+        }
+
+        // 加载M3U源
+        async function loadM3USource(url) {
+            const response = await fetchWithTimeout(url);
+            const content = await response.text();
+            const lines = content.split('\n').filter(line => line.trim() !== '');
+
+            const channels = [];
+            let currentChannel = null;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line.startsWith('#EXTINF:')) {
+                    // 解析频道信息
+                    const match = line.match(/#EXTINF:(-?\d+)(.*),(.*)/);
+                    if (match) {
+                        const duration = match[1];
+                        const info = match[2];
+                        const name = match[3].trim();
+                        currentChannel = { id: channelId++, name, url: '', duration, info, status: CHANNEL_STATUS.UNCHECKED };
+                }
+                } else if (line.startsWith('http') && currentChannel) {
+                    // 获取频道URL
+                    currentChannel.url = line;
+                    // 尝试从频道名称中提取分类
+                    currentChannel.category = extractCategoryFromName(currentChannel.name);
+                    channels.push(currentChannel);
+                    currentChannel = null;
+                }
+            }
+
+            return channels;
+        }
+
+        // 加载TXT源
+        async function loadTXTSource(url) {
+            try {
+                const response = await fetchWithTimeout(url);
+                const content = await response.text();
+                const lines = content.split('\n').filter(line => line.trim() !== '');
+
+                const channels = [];
+
+                for (const line of lines) {
+                    // 假设TXT格式为 "频道名称,频道URL"
+                    const parts = line.split(',');
+                    if (parts.length >= 2) {
+                        const name = parts[0].trim();
+                        // 处理URL部分，确保URL编码正确
+                        const urlPart = parts[1].trim();
+                        // 解码可能的URL编码，然后重新编码确保正确性
+                        const decodedUrl = decodeURIComponent(urlPart);
+                        const channel = { id: channelId++, name, url: decodedUrl, status: CHANNEL_STATUS.UNCHECKED };
+                        // 尝试从频道名称中提取分类
+                        channel.category = extractCategoryFromName(channel.name);
+                        channels.push(channel);
+                    }
+                }
+
+                return channels;
+            } catch (error) {
+                console.error('TXT源解析失败:', error);
+                throw new Error(`TXT源处理错误: ${error.message || '未知错误'}`);
+            }
+        }
+
+        // 加载JSON数据源
+        async function loadJSONSource(url) {
+            const response = await fetchWithTimeout(url);
+            return await response.json();
+        }
+
+        // 从频道名称中提取分类
+        function extractCategoryFromName(name) {
+            // 根据频道名称特征判断分类
+            const categoryMap = {
+                '央视': /CCTV|央视/,
+                '卫视': /卫视/,
+                '地方台': /广东|北京|上海|江苏|浙江|湖南|安徽|福建|江西|山东|河南|湖北|广西|海南|重庆|四川|贵州|云南|西藏|陕西|甘肃|青海|宁夏|新疆|香港|澳门|台湾/,
+                '电影': /电影/,
+                '体育': /体育|NBA|足球/,
+                '动画': /动画|卡通/,
+                '游戏': /游戏/,
+                '音乐': /音乐/,
+                '经典剧场': /经典|剧场/
+            };
+
+            for (const [category, regex] of Object.entries(categoryMap)) {
+                if (regex.test(name)) {
+                    return category;
+                }
+            }
+
+            return '其他';
+        }
+
+        // 按分类组织频道
+        function organizeChannelsByCategory() {
+            categories = {};
+
+            for (const channel of channels) {
+                const category = channel.category || '其他';
+                if (!categories[category]) {
+                    categories[category] = [];
+                }
+                categories[category].push(channel);
+            }
+        }
+
+        // 显示分类列表
+        function displayCategories() {
+            const categoryList = document.getElementById('category-list');
+            const categoryLoading = document.getElementById('category-loading');
+
+            // 清空列表
+            categoryList.innerHTML = '';
+
+            // 添加分类
+            for (const [category, channelList] of Object.entries(categories)) {
+                // 分类项
+                const categoryItem = document.createElement('li');
+                categoryItem.className = 'category-item';
+                categoryItem.textContent = `${category} (${channelList.length})`;
+                
+                // 频道列表
+                const channelListElement = document.createElement('ul');
+                channelListElement.className = 'channel-list';
+                channelListElement.style.display = 'none';
+
+                // 添加频道
+                for (const channel of channelList) {
+                    const channelItem = document.createElement('li');
+                    channelItem.className = 'channel-item';
+                    
+                    // 频道名称
+                    const channelName = document.createElement('div');
+                    channelName.className = 'channel-name';
+                    channelName.textContent = channel.name;
+                    
+                    // 组合元素
+                    channelItem.appendChild(channelName);
+                    
+                    channelItem.addEventListener('click', (event) => playChannel(channel, event));
+                    channelListElement.appendChild(channelItem);
+                }
+
+                // 分类点击事件
+                categoryItem.addEventListener('click', () => {
+                    // 切换频道列表显示
+                    const isHidden = channelListElement.style.display === 'none';
+                    channelListElement.style.display = isHidden ? 'block' : 'none';
+                    
+                    // 切换分类激活状态
+                    categoryItem.classList.toggle('active', isHidden);
+                });
+
+                // 添加到列表
+                categoryList.appendChild(categoryItem);
+                categoryList.appendChild(channelListElement);
+            }
+
+            // 显示分类列表，隐藏加载提示
+            categoryLoading.style.display = 'none';
+            categoryList.style.display = 'block';
+        }
+
+        // 播放频道
+        function playChannel(channel, event) {
+            // 更新当前频道
+            currentChannel = channel;
+            
+            // 更新界面
+            document.getElementById('current-channel').textContent = channel.name;
+            
+            // 移除所有频道的激活状态
+            document.querySelectorAll('.channel-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // 添加当前频道的激活状态
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+            
+            try {
+                addLog(`开始播放频道: ${channel.name}`, 'info');
+                addLog(`频道URL: ${channel.url}`, 'debug');
+                
+                // 根据URL自动检测媒体类型
+                const mediaType = getMediaTypeFromUrl(channel.url);
+                addLog(`媒体类型: ${mediaType}`, 'debug');
+                
+                // 暂停当前播放
+                player.pause();
+                
+                // 清空当前源
+                player.src([]);
+                
+                // 加载视频源
+                player.src({
+                    src: channel.url,
+                    type: mediaType
+                });
+                
+                // 开始播放
+                player.load();
+                player.play().catch(error => {
+                    addLog(`自动播放失败: ${error.message}，请手动点击播放按钮`, 'warn');
+                    // 自动播放失败时不显示错误，让用户手动点击播放
+                });
+            } catch (error) {
+                addLog(`播放失败: ${error.message}`, 'error');
+                try {
+                    if (player.errorDisplay && player.errorDisplay.contentEl) {
+                        player.errorDisplay.contentEl().textContent = '媒体播放失败，请尝试其他频道或检查网络连接';
+                    }
+                } catch (e) {
+                    addLog(`更新错误信息失败: ${e.message}`, 'error');
+                }
+            }
+        }
+        
+        // 切换解码方式
+        function changeDecodingMode(mode) {
+            const videoElement = document.querySelector('video');
+            
+            if (!videoElement) return;
+            
+            if (mode === 'hardware') {
+                // 开启硬件加速
+                videoElement.removeAttribute('disable-hardware-decoding');
+                // 对于现代浏览器，硬件加速通常是默认开启的，这里可以添加一些额外的优化参数
+                videoElement.setAttribute('playsinline', 'true');
+                videoElement.setAttribute('webkit-playsinline', 'true');
+                addLog('已切换到硬件解码模式', 'success');
+            } else {
+                // 开启软件解码
+                videoElement.setAttribute('disable-hardware-decoding', 'true');
+                // 对于某些浏览器，可能需要设置其他属性来强制使用软件解码
+                if (videoElement.hasAttribute('playsinline')) {
+                    videoElement.removeAttribute('playsinline');
+                }
+                if (videoElement.hasAttribute('webkit-playsinline')) {
+                    videoElement.removeAttribute('webkit-playsinline');
+                }
+                addLog('已切换到软件解码模式', 'success');
+            }
+            
+            // 如果当前有正在播放的频道，需要重新加载以应用新的解码方式
+            if (currentChannel) {
+                addLog('重新加载当前频道以应用新的解码方式', 'info');
+                playChannel(currentChannel);
+            }
+        }
+        
+        // 检查单个频道可用性
+        async function checkChannelAvailability(channel) {
+            if (!channel || !channel.url) {
+                return;
+            }
+            
+            // 更新频道状态为检查中
+            channel.status = CHANNEL_STATUS.CHECKING;
+            updateChannelStatusUI(channel);
+            
+            try {
+                // 使用HEAD请求检查URL是否可用（比GET请求更轻量）
+                const response = await fetchWithTimeout(channel.url, { method: 'HEAD' }, 5000, 1);
+                
+                // 如果响应成功，标记为可用
+                if (response.ok) {
+                    channel.status = CHANNEL_STATUS.AVAILABLE;
+                } else {
+                    channel.status = CHANNEL_STATUS.UNAVAILABLE;
+                }
+            } catch (error) {
+                // 请求失败，标记为不可用
+                channel.status = CHANNEL_STATUS.UNAVAILABLE;
+            } finally {
+                // 更新UI显示状态
+                updateChannelStatusUI(channel);
+                // 处理下一个待检查的频道
+                activeChecks--;
+                processPendingChecks();
+            }
+        }
+        
+        // 批量检查所有频道可用性
+        function checkAllChannelsAvailability() {
+            addLog('开始批量检查频道可用性', 'info');
+            
+            // 重置状态
+            activeChecks = 0;
+            pendingChecks = [];
+            
+            // 将所有频道添加到待检查队列
+            for (const channel of channels) {
+                pendingChecks.push(channel);
+            }
+            
+            // 开始处理待检查队列
+            processPendingChecks();
+        }
+        
+        // 处理待检查队列
+        function processPendingChecks() {
+            // 当有可用的并发槽位且有待检查的频道时，继续检查
+            while (activeChecks < MAX_CONCURRENT_CHECKS && pendingChecks.length > 0) {
+                const channel = pendingChecks.shift();
+                activeChecks++;
+                checkChannelAvailability(channel);
+            }
+            
+            // 如果所有检查都已完成
+            if (activeChecks === 0 && pendingChecks.length === 0) {
+                addLog('所有频道可用性检查完成', 'success');
+                
+                // 统计可用和不可用的频道数量
+                const availableCount = channels.filter(c => c.status === CHANNEL_STATUS.AVAILABLE).length;
+                const unavailableCount = channels.filter(c => c.status === CHANNEL_STATUS.UNAVAILABLE).length;
+                const uncheckedCount = channels.filter(c => c.status === CHANNEL_STATUS.UNCHECKED).length;
+                
+                addLog(`检查结果: 可用 ${availableCount} 个, 不可用 ${unavailableCount} 个, 未检查 ${uncheckedCount} 个`, 'info');
+            }
+        }
+        
+        // 更新频道状态的UI显示
+        function updateChannelStatusUI(channel) {
+            // 查找对应频道的DOM元素
+            const channelElements = document.querySelectorAll('.channel-item');
+            let targetElement = null;
+            
+            for (const element of channelElements) {
+                const channelName = element.querySelector('.channel-name');
+                if (channelName && channelName.textContent === channel.name) {
+                    targetElement = element;
+                    break;
+                }
+            }
+            
+            if (!targetElement) return;
+            
+            // 查找或创建状态指示器
+            let statusIndicator = targetElement.querySelector('.channel-status');
+            if (!statusIndicator) {
+                statusIndicator = document.createElement('span');
+                statusIndicator.className = 'channel-status';
+                statusIndicator.style.marginRight = '8px';
+                statusIndicator.style.fontSize = '12px';
+                
+                // 找到频道名称元素，在其前添加状态指示器（显示在频道名称左侧）
+                const channelNameElement = targetElement.querySelector('.channel-name');
+                if (channelNameElement) {
+                    channelNameElement.parentNode.insertBefore(statusIndicator, channelNameElement);
+                }
+            }
+            
+            // 更新状态指示器的样式和内容
+            switch (channel.status) {
+                case CHANNEL_STATUS.CHECKING:
+                    statusIndicator.textContent = '🔄';
+                    statusIndicator.title = '检查中...';
+                    break;
+                case CHANNEL_STATUS.AVAILABLE:
+                    statusIndicator.textContent = '✅';
+                    statusIndicator.title = '可用';
+                    break;
+                case CHANNEL_STATUS.UNAVAILABLE:
+                    statusIndicator.textContent = '❌';
+                    statusIndicator.title = '不可用';
+                    break;
+                default:
+                    statusIndicator.textContent = '';
+                    statusIndicator.title = '未检查';
+            }
+        }
+        
+        // 根据URL获取媒体类型
+        function getMediaTypeFromUrl(url) {
+            const lowerUrl = url.toLowerCase();
+            
+            // HLS流 (.m3u8)
+            if (lowerUrl.includes('.m3u8')) {
+                return 'application/x-mpegURL';
+            }
+            
+            // M3U流 (.m3u)
+            if (lowerUrl.includes('.m3u')) {
+                return 'application/x-mpegURL';
+            }
+            
+            // MP4格式
+            if (lowerUrl.includes('.mp4')) {
+                return 'video/mp4';
+            }
+            
+            // FLV格式
+            if (lowerUrl.includes('.flv')) {
+                return 'video/x-flv';
+            }
+            
+            // WebM格式
+            if (lowerUrl.includes('.webm')) {
+                return 'video/webm';
+            }
+            
+            // MOV格式
+            if (lowerUrl.includes('.mov')) {
+                return 'video/quicktime';
+            }
+            
+            // AVI格式
+            if (lowerUrl.includes('.avi')) {
+                return 'video/x-msvideo';
+            }
+            
+            // MKV格式
+            if (lowerUrl.includes('.mkv')) {
+                return 'video/x-matroska';
+            }
+            
+            // TS格式
+            if (lowerUrl.includes('.ts')) {
+                return 'video/MP2T';
+            }
+            
+            // RTMP流
+            if (lowerUrl.startsWith('rtmp:')) {
+                return 'rtmp/mp4';
+            }
+            
+            // RTSP流
+            if (lowerUrl.startsWith('rtsp:')) {
+                return 'video/rtsp';
+            }
+            
+            // HTTP-FLV流
+            if (lowerUrl.includes('.flv') && (lowerUrl.startsWith('http://') || lowerUrl.startsWith('https://'))) {
+                return 'video/x-flv';
+            }
+            
+            // 默认使用HLS格式，同时支持多种流媒体协议
+            return 'application/x-mpegURL';
+        }
+
+        // 搜索频道
+        function searchChannels(keyword) {
+            if (!keyword.trim()) {
+                // 显示所有分类
+                document.querySelectorAll('.category-item, .channel-list').forEach(item => {
+                    item.style.display = 'block';
+                });
+                return;
+            }
+
+            // 隐藏所有分类
+            document.querySelectorAll('.category-item, .channel-list').forEach(item => {
+                item.style.display = 'none';
+            });
+
+            const searchResults = channels.filter(channel => 
+                channel.name.toLowerCase().includes(keyword.toLowerCase())
+            );
+
+            // 创建搜索结果分类
+            const categoryList = document.getElementById('category-list');
+            const searchResultItem = document.createElement('li');
+            searchResultItem.className = 'category-item active';
+            searchResultItem.textContent = `搜索结果 (${searchResults.length})`;
+
+            const searchResultList = document.createElement('ul');
+            searchResultList.className = 'channel-list';
+            searchResultList.style.display = 'block';
+
+            // 添加搜索结果频道
+            for (const channel of searchResults) {
+                const channelItem = document.createElement('li');
+                channelItem.className = 'channel-item';
+                
+                // 频道名称
+                const channelName = document.createElement('div');
+                channelName.className = 'channel-name';
+                channelName.textContent = channel.name;
+                
+                // 组合元素
+                channelItem.appendChild(channelName);
+                
+                channelItem.addEventListener('click', (event) => playChannel(channel, event));
+                searchResultList.appendChild(channelItem);
+            }
+
+            // 添加到列表
+            categoryList.appendChild(searchResultItem);
+            categoryList.appendChild(searchResultList);
+        }
+    </script>
+</body>
+</html>
